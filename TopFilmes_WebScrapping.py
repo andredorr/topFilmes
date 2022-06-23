@@ -1,9 +1,11 @@
+import os
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import ssl
 from urllib.error import HTTPError
 from urllib.error import URLError
 import re
+from operator import itemgetter, attrgetter
 
 # Armazena apenas os numeros da variavel valor
 def trata_valor(valor):
@@ -14,12 +16,17 @@ def trata_valor(valor):
     return valor
 
 # Salva os dados encontrados em um arquivo txt
+#def salvar(listFilmes):
+    #   arquivo_txt = open('arq_filmes.txt', 'w')
+    #   arquivo_txt.write(listFilmes)
+    #   for linha in listFilmes:
+    #      salvararquivo_txt.write(str(linha))
+#  arquivo_txt.close()
+
 def salvar(listFilmes):
-    arquivo_txt = open('arq_filmes.txt', 'w')
-    arquivo_txt.write(listFilmes)
-    #for linha in listFilmes:
-     #   arquivo_txt.write(linha)
-    arquivo_txt.close()
+    with open(os.path.join('arq_filmes.txt'), 'w') as fileArq:
+        for filme in listFilmes[0:21]:
+            fileArq.write(filme + "\n")
 
 def valida_site(url, listFilmes, contador):
     ssl._create_default_https_context = ssl._create_unverified_context
@@ -74,7 +81,7 @@ def valida_site(url, listFilmes, contador):
             titulo = filme.select('div#main > div > div > div > div > div > h3 > a')[0].text
             # Cria e formata uma variavel com todos os dados coletados do HTML
             #var = ('{:<5}{:<10}{:<10}{:<100}{:<15}{:<10}').format(str(contador), str(num_ibdb), str(metascore), str(titulo), str(votos), str(ano)[:4])
-            var = [str(contador), str(num_ibdb), str(metascore), str(titulo), str(votos), str(ano)[:4]]
+            var = [str(contador), str(num_ibdb), str(metascore), str(titulo), int(votos), str(ano)[:4]]
             # Salva a variavel na lista
             listFilmes.append(var)
             # Adiciona mais um item no contador da lista
@@ -85,11 +92,33 @@ def valida_site(url, listFilmes, contador):
         #Caso a aplicacao tenha algum retorno vazio a mesma para
         return None
 
+def classificador(listFilmes,reverse, coluna):
+    if reverse == '1':
+        listFilmesClass = sorted(listFilmes, key=itemgetter(coluna), reverse=False)
+    else:
+        listFilmesClass = sorted(listFilmes, key=itemgetter(coluna), reverse=True)
+
+    return listFilmesClass
+
+def formatarDados(listFilmes):
+    listFilmesFinal = ['{:<5}{:<10}{:<10}{:<100}{:<15}{:<10}'.format('#', 'imbd', 'metascore', 'filme', 'votos', 'ano')]
+    for lista in listFilmes:
+        var = ('{:<5}{:<10}{:<10}{:<100}{:<15}{:<10}').format(str(lista[0]), str(lista[1]), str(lista[2]), str(lista[3]), str(lista[4]), str(lista[5]))
+        listFilmesFinal.append(var)
+    return listFilmesFinal
+
+#Impressão da mensagem inicial do programa
+print("\n                                      TOP FILMES                                               ")
+print("\n-----------------------------------------------------------------------------------------------")
+#Verifica por qual caracteristica do filme o usuario deseja classificar
+coluna = input('\nDigite por qual critério deseja classificar a lista de filmes:'
+                '\n 1: IMDB \n 2: Metascore  \n 3: Titulo \n 4: Votos \n 5: Ano\n')
+coluna = int(coluna)
+reverse = input('\nDigite 1 para ordenar em ordem crescente ou 2 para decrescente\n')
+
 # Cria um cabecario para os itens da lista
 #listFilmes = ['{:<5}{:<10}{:<10}{:<100}{:<15}{:<10}'.format('#', 'imbd', 'metascore', 'filme', 'votos', 'ano')]
-titulo = ['#', 'imbd', 'metascore', 'filme', 'votos', 'ano']
 listFilmes = []
-listFilmes.append(titulo)
 # Inicia o contador em 0
 contador = 0
 # Percorre as paginas de 50 em 50 filmes até chegar em 2000 filmes.
@@ -100,5 +129,11 @@ for pagina in range(1, 150, 50):
     # Chama def para encontrar as informacoes desejadas
     contador = valida_site(url, listFilmes, contador)
 
+listFilmesClass = classificador(listFilmes, reverse, coluna)
+
+listFilmesFinal = formatarDados(listFilmesClass)
+
 # Chama def para salvar o arquivo txt
-salvar(listFilmes)
+salvar(listFilmesFinal)
+
+print('Arquivo salvo com sucesso!!!')
