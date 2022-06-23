@@ -1,3 +1,4 @@
+import getpass
 import os
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -6,6 +7,7 @@ from urllib.error import HTTPError
 from urllib.error import URLError
 import re
 from operator import itemgetter, attrgetter
+import getpass
 
 # Armazena apenas os numeros da variavel valor
 def trata_valor(valor):
@@ -16,17 +18,16 @@ def trata_valor(valor):
     return valor
 
 # Salva os dados encontrados em um arquivo txt
-#def salvar(listFilmes):
-    #   arquivo_txt = open('arq_filmes.txt', 'w')
-    #   arquivo_txt.write(listFilmes)
-    #   for linha in listFilmes:
-    #      salvararquivo_txt.write(str(linha))
-#  arquivo_txt.close()
-
 def salvar(listFilmes):
-    with open(os.path.join('arq_filmes.txt'), 'w') as fileArq:
-        for filme in listFilmes[0:21]:
-            fileArq.write(filme + "\n")
+    arquivo_txt = open('arq_filmes.txt', 'w')
+    for linha in listFilmes[0:21]:
+        arquivo_txt.write(linha + "\n")
+    arquivo_txt.close()
+
+#def salvar(listFilmes):
+ #   with open(os.path.join('arq_filmes.txt'), 'w') as fileArq:
+  #      for filme in listFilmes[0:21]:
+   #         fileArq.write(filme + "\n")
 
 def valida_site(url, listFilmes, contador):
     ssl._create_default_https_context = ssl._create_unverified_context
@@ -136,4 +137,11 @@ listFilmesFinal = formatarDados(listFilmesClass)
 # Chama def para salvar o arquivo txt
 salvar(listFilmesFinal)
 
-print('Arquivo salvo com sucesso!!!')
+print('Arquivo salvo com sucesso!!! \n\n')
+enviaEmail = input("Digite 1 para enviar as informações por e-mail. \n")
+if enviaEmail == "1":
+    Email = input("Digite seu e-mail: \n")
+    Password = getpass.getpass(input("Digite sua senha\n"))
+
+print(Email)
+print(Password)
