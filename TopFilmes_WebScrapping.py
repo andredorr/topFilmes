@@ -28,7 +28,7 @@ def criaPasta(pasta):
         os.makedirs(pasta)
 
 # Salva os dados encontrados em um arquivo txt
-def salvar(listFilmes, caminho, dictFoto):
+def salvar(listFilmes, caminho, dictFotos):
     '''salva o txt formatado com os 20 filmes e suas respectivas fotos'''
     arquivo_txt = open('ranking.txt', 'w')
     for linha in listFilmes[0:21]:
@@ -36,12 +36,12 @@ def salvar(listFilmes, caminho, dictFoto):
         id = linha[:4].strip() #carrega o id do filme
         if id != '#':
             nome =linha[25:101].strip() + '.jpg' #carrega o nome do filme
-            foto = requests.get(dictFoto[id]).content  #carrega conteudo da url (no caso, uma foto)
+            foto = requests.get(dictFotos[id]).content  #carrega conteudo da url (no caso, uma foto)
             with open(os.path.join(caminho, nome), 'wb') as handler: 
                 handler.write(foto) # salva a foto
     arquivo_txt.close()
 
-def valida_site(url, listFilmes, contador, dictFoto):
+def valida_site(url, listFilmes, contador, dictFotos):
     ssl._create_default_https_context = ssl._create_unverified_context
     try:
         # abre a URL
@@ -110,7 +110,7 @@ def valida_site(url, listFilmes, contador, dictFoto):
             # Salva a variavel na lista
             listFilmes.append(var)
             # Salva dicionario com a url para download das imagens dos filmes
-            dictFoto[str(contador)] = str(foto_link)
+            dictFotos[str(contador)] = str(foto_link)
             # Adiciona mais um item no contador da lista
             contador += 1
         # Retorna o valor do contador
@@ -149,7 +149,7 @@ reverse = input('\nDigite 1 para ordenar em ordem crescente ou 2 para decrescent
 # Cria um cabecario para os itens da lista
 #listFilmes = ['{:<5}{:<10}{:<10}{:<100}{:<15}{:<10}'.format('#', 'imbd', 'metascore', 'filme', 'votos', 'ano')]
 listFilmes = []
-dictFoto = {}
+dictFotos = {}
 # Inicia o contador em 0
 contador = 0
 # Percorre as paginas de 50 em 50 filmes até chegar em 2000 filmes.
@@ -158,14 +158,14 @@ for pagina in range(1, 150, 50):
     # URL da pagina
     url = ("https://www.imdb.com/search/title/?release_date=2020-01-01,2022-12-31&sort=num_votes,desc&start={}&ref_=adv_nxt").format(str(pagina))
     # Chama def para encontrar as informacoes desejadas
-    contador = valida_site(url, listFilmes, contador, dictFoto)
+    contador = valida_site(url, listFilmes, contador, dictFotos)
 
 listFilmesClass = classificador(listFilmes, reverse, coluna)
 
 listFilmesFinal = formatarDados(listFilmesClass)
 
 # Chama def para salvar o arquivo txt
-salvar(listFilmesFinal, camFotos, dictFoto)
+salvar(listFilmesFinal, camFotos, dictFotos)
 
 print('Arquivo salvo com sucesso!!! \n\n')
 enviaEmail = input("Digite 1 para enviar as informações por e-mail. \n")
