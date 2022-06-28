@@ -1,4 +1,3 @@
-import getpass
 import os
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -6,8 +5,7 @@ import ssl
 from urllib.error import HTTPError
 from urllib.error import URLError
 import re
-from operator import itemgetter, attrgetter
-import getpass
+from operator import itemgetter
 import requests
 
 # Armazena apenas os numeros da variavel valor
@@ -35,7 +33,8 @@ def salvar(listFilmes, caminho, dictFotos):
         arquivo_txt.write(linha + "\n")
         id = linha[:4].strip() #carrega o id do filme
         if id != '#':
-            nome =linha[25:101].strip() + '.jpg' #carrega o nome do filme
+            nome = linha[25:101].strip().replace(":", "") + '.jpg' #carrega o nome do filme
+            print(nome)
             foto = requests.get(dictFotos[id]).content  #carrega conteudo da url (no caso, uma foto)
             with open(os.path.join(caminho, nome), 'wb') as handler: 
                 handler.write(foto) # salva a foto
@@ -94,16 +93,14 @@ def valida_site(url, listFilmes, contador, dictFotos):
             titulo = filme.select('div#main > div > div > div > div > div > h3 > a')[0].text
 
             titulo_link = 'https://www.imdb.com' + filme.select('div#main > div > div > div > div > div > h3 > a')[0]['href']
+
+            #Encontrar a imagem do filme
             html_titulo_link = urlopen(titulo_link)
             bs_titulo_detalhe = BeautifulSoup(html_titulo_link.read(), 'html.parser')
             foto_detalhe_link = 'https://www.imdb.com' + bs_titulo_detalhe.find('a', {'class': 'ipc-lockup-overlay ipc-focusable'})['href']
             html_foto_link  = urlopen(foto_detalhe_link)
             bs_foto = BeautifulSoup(html_foto_link.read(), 'html.parser')
             foto_link = bs_foto.find('img', {'class': 'sc-7c0a9e7c-0 hXPlvk'})['src']
-
-            #foto = requests.get(foto_link).content 
-            #with open(titulo +  '.jpg', 'wb') as handler: 
-            #    handler.write(foto) 
 
             # Cria e formata uma variavel com todos os dados coletados do HTML
             var = [str(contador), str(num_ibdb), str(metascore), str(titulo), int(votos), str(ano)[:4]]
@@ -117,7 +114,7 @@ def valida_site(url, listFilmes, contador, dictFotos):
         return contador
     except:
         #Caso a aplicacao tenha algum retorno vazio a mesma para
-        return None
+        return int(contador)
 
 def classificador(listFilmes,reverse, coluna):
     if reverse == '1':
@@ -135,7 +132,7 @@ def formatarDados(listFilmes):
     return listFilmesFinal
 
 #cria ou limpa a pasta de fotos
-camFotos = './Fotos'
+camFotos = '.\Fotos'
 criaPasta(camFotos)
 #Impressão da mensagem inicial do programa
 print("\n                                      TOP FILMES                                               ")
@@ -147,18 +144,16 @@ coluna = int(coluna)
 reverse = input('\nDigite 1 para ordenar em ordem crescente ou 2 para decrescente\n')
 
 # Cria um cabecario para os itens da lista
-#listFilmes = ['{:<5}{:<10}{:<10}{:<100}{:<15}{:<10}'.format('#', 'imbd', 'metascore', 'filme', 'votos', 'ano')]
 listFilmes = []
 dictFotos = {}
 # Inicia o contador em 0
 contador = 0
 # Percorre as paginas de 50 em 50 filmes até chegar em 2000 filmes.
-#for pagina in range(1,2001,50):
-for pagina in range(1, 150, 50):
+for pagina in range(1,2001,50):
     # URL da pagina
     url = ("https://www.imdb.com/search/title/?release_date=2020-01-01,2022-12-31&sort=num_votes,desc&start={}&ref_=adv_nxt").format(str(pagina))
     # Chama def para encontrar as informacoes desejadas
-    contador = valida_site(url, listFilmes, contador, dictFotos)
+    contador = valida_site(url, listFilmes, int(contador), dictFotos)
 
 listFilmesClass = classificador(listFilmes, reverse, coluna)
 
@@ -168,10 +163,3 @@ listFilmesFinal = formatarDados(listFilmesClass)
 salvar(listFilmesFinal, camFotos, dictFotos)
 
 print('Arquivo salvo com sucesso!!! \n\n')
-enviaEmail = input("Digite 1 para enviar as informações por e-mail. \n")
-if enviaEmail == "1":
-    Email = input("Digite seu e-mail: \n")
-    Password = getpass.getpass(input("Digite sua senha\n"))
-
-    print(Email)
-    print(Password)
