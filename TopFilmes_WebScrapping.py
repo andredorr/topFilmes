@@ -34,7 +34,6 @@ def salvar(listFilmes, caminho, dictFotos):
         id = linha[:4].strip() #carrega o id do filme
         if id != '#':
             nome = linha[25:101].strip().replace(":", "") + '.jpg' #carrega o nome do filme
-            print(nome)
             foto = requests.get(dictFotos[id]).content  #carrega conteudo da url (no caso, uma foto)
             with open(os.path.join(caminho, nome), 'wb') as handler: 
                 handler.write(foto) # salva a foto
